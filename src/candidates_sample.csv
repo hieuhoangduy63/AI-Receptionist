@@ -1,0 +1,9 @@
+name,email,phone,age,major,school,position_applied,interview_status,notes
+Nguyễn Văn A,nguyenvana@email.com,0901234567,25,Khoa học máy tính,Đại học Bách Khoa,Software Engineer,scheduled,Ứng viên tiềm năng
+Trần Thị B,tranthib@email.com,0912345678,27,Quản trị kinh doanh,Đại học Kinh tế,Business Analyst,in-progress,Có kinh nghiệm 3 năm
+Lê Minh C,leminhc@email.com,0923456789,23,Thiết kế đồ họa,Đại học Mỹ thuật,UI/UX Designer,scheduled,Portfolio ấn tượng
+Phạm Thị D,phamthid@email.com,0934567890,29,Kế toán,Đại học Tài chính,Accountant,completed,Đã phỏng vấn vòng 1
+Hoàng Văn E,hoangvane@email.com,0945678901,26,Marketing,Đại học Thương mại,Marketing Specialist,hired,Đã được tuyển dụng
+Vũ Thị F,vuthif@email.com,0956789012,24,Công nghệ thông tin,Đại học FPT,DevOps Engineer,rejected,Không phù hợp với vị trí
+Đinh Minh G,dinhminhg@email.com,0967890123,28,Quản lý dự án,Đại học Bách Khoa,Project Manager,scheduled,Kinh nghiệm quản lý tốt
+Bùi Thị H,buithih@email.com,0978901234,22,Tài chính ngân hàng,Đại học Ngân hàng,Financial Analyst,in-progress,Ứng viên trẻ năng động

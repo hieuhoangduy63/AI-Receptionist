@@ -1,0 +1,4 @@
+person_name,hr_username,interview_date,interview_room,interview_type,duration_minutes,status,notes
+Nguyen Van A,admin,2025-09-15 09:00,Room A,technical,60,scheduled,Phỏng vấn kỹ thuật đầu tiên
+Tran Thi B,admin,2025-09-15 10:30,Room B,hr,45,scheduled,Phỏng vấn HR
+Le Van C,admin,2025-09-16 14:00,Room C,final,90,scheduled,Phỏng vấn cuối với ban giám đốc

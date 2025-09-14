@@ -1,0 +1,4 @@
+ename,email,phone,age,major,school,position_applied,interview_status,notes
+Nguyễn Văn A,a@email.com,0123456789,25,Khoa học máy tính,Đại học Bách Khoa,Software Engineer,scheduled,Ứng viên tiềm năng
+Trần Thị B,b@email.com,0987654321,28,Khoa học dữ liệu,Đại học Quốc gia,Data Analyst,in-progress,Kinh nghiệm tốt
+Lê Văn C,c@email.com,0456789123,30,Quản trị kinh doanh,Đại học Kinh tế,Product Manager,completed,Phỏng vấn xuất sắc

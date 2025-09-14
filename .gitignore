@@ -1,0 +1,95 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtualenv
+venv/
+venv310/
+ENV/
+.env
+
+# VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Model weights & large files
+*.pt
+*.onnx
+*.weights
+*.h5
+*.hdf5
+*.pb
+*.tfrecord
+*.tflite
+
+# Thêm loại bỏ thư mục "Hieu" chứa ảnh cá nhân
+src/data/Hieu/
+
+# SQLite database (uncomment nếu muốn loại bỏ database)
+# *.db
+# *.sqlite
+# *.sqlite3
+
+# Log files
+*.log
+logs/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+
+# Temporary files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Thư mục audio tạm thời
+tmp/
+temp/
+*.mp3
+*.wav
+*.ogg
+
+# Các file tạm khác
+*.bak
+*.swp
+*.tmp

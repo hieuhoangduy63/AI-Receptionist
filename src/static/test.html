@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Receptionist System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #5b5fe6;
+            --secondary: #10b981;
+            --secondary-hover: #059669;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+            --border: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            background: var(--bg-primary);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-xl);
+            margin: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-height: calc(100vh - 2rem);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* === ANIMATIONS === */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes scanLine {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* === HEADER === */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1;
+            position: relative;
+        }
+
+        .logo i {
+            font-size: 1.875rem;
+            background: linear-gradient(45deg, #ffffff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            z-index: 1;
+            position: relative;
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 0.875rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease;
+        }
+
+        .btn:hover::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--text-secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: var(--secondary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        /* === HOME SCREEN === */
+        .home-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            text-align: center;
+            min-height: 70vh;
+            position: relative;
+        }
+
+        .home-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6, var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .home-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            max-width: 600px;
+            font-weight: 500;
+        }
+
+        .mode-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .mode-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem 2rem;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent, rgba(99, 102, 241, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary);
+        }
+
+        .mode-card:hover::before {
+            opacity: 1;
+        }
+
+        .mode-card i {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+
+        .reception-mode i {
+            color: var(--secondary);
+        }
+
+        .hr-mode i {
+            color: var(--primary);
+        }
+
+        .mode-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mode-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* === LOGIN SCREEN === */
+        .login-screen {
+            display: none;
+            max-width: 420px;
+            margin: 4rem auto;
+            padding: 2rem;
+        }
+
+        .login-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            padding: 3rem;
+            box-shadow: var(--shadow-xl);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .login-title {
+            font-size: 1.875rem;
+            color: var(--text-primary);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: var(--bg-secondary);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            background: var(--bg-primary);
+        }
+
+        .login-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            margin-top: 1rem;
+            display: none;
+            border-left: 4px solid var(--danger);
+            font-size: 0.875rem;
+        }
+
+        .demo-info {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+        }
+
+        /* === RECEPTION SCREEN === */
+        .reception-screen {
+            display: none;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .reception-header {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .reception-header h2 {
+            color: var(--text-primary);
+            font-size: 1.875rem;
+            font-weight: 700;
+        }
+
+        .reception-header .status-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--secondary);
+            border-radius: 50%;
+            position: relative;
+            animation: pulse 2s infinite;
+        }
+
+        .camera-section {
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .camera-container {
+            position: relative;
+            display: inline-block;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            background: #000;
+            border: 4px solid var(--bg-primary);
+        }
+
+        video {
+            width: 100%;
+            max-width: 480px;
+            height: auto;
+            display: block;
+            border-radius: var(--radius-lg);
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .scanning .camera-overlay {
+            opacity: 1;
+            background: linear-gradient(
+                to bottom,
+                transparent 0%,
+                rgba(99, 102, 241, 0.2) 45%,
+                rgba(99, 102, 241, 0.4) 50%,
+                rgba(99, 102, 241, 0.2) 55%,
+                transparent 100%
+            );
+            animation: scanLine 2s linear infinite;
+        }
+
+        .result-section {
+            margin-top: 2rem;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .waiting-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .waiting-state i {
+            font-size: 3rem;
+            color: var(--primary);
+        }
+
+        .recognition-result {
+            display: none;
+        }
+
+        .person-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            text-align: left;
+            background: var(--bg-primary);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .person-avatar {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .person-details {
+            flex-grow: 1;
+        }
+
+        .person-details h3 {
+            color: var(--text-primary);
+            font-size: 1.375rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .person-meta {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .person-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+            transition: width 0.8s ease;
+            width: 0%;
+        }
+
+        .direction-card {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-hover) 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            justify-content: center;
+            font-size: 1.125rem;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .error-state {
+            color: var(--danger);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .error-state i {
+            font-size: 3rem;
+        }
+
+        /* === HR DASHBOARD === */
+        .hr-dashboard {
+            display: none;
+            padding: 2rem;
+        }
+
+        .dashboard-nav {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            border: 1px solid var(--border);
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-tertiary);
+            transform: translateY(-1px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .dashboard-content {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            min-height: 500px;
+            border: 1px solid var(--border);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th {
+            background: var(--bg-secondary);
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .data-table tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-scheduled {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-completed {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .status-cancelled {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* === MODAL === */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            margin: 3rem auto;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--bg-secondary);
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            .container {
+                margin: 0.5rem;
+                min-height: calc(100vh - 1rem);
+            }
+
+            .header {
+                padding: 1rem 1.5rem;
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .logo {
+                font-size: 1.25rem;
+            }
+
+            .home-screen {
+                padding: 2rem 1rem;
+            }
+
+            .mode-selection {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .mode-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .login-screen {
+                margin: 2rem auto;
+                padding: 1rem;
+            }
+
+            .login-card {
+                padding: 2rem;
+            }
+
+            .reception-screen {
+                padding: 1rem;
+            }
+
+            .hr-dashboard {
+                padding: 1rem;
+            }
+
+            .dashboard-nav {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .data-table {
+                font-size: 0.875rem;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .person-info {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .person-meta {
+                justify-content: center;
+            }
+        }
+
+        /* === LOADING STATES === */
+        .loading {
+            position: relative;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* === ACCESSIBILITY === */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* === FOCUS STYLES === */
+        .btn:focus,
+        .form-control:focus,
+        .nav-item:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                <span>AI Receptionist System</span>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="goHome()" aria-label="Về trang chủ">
+                    <i class="fas fa-home"></i>
+                    <span>Trang chủ</span>
+                </button>
+                <button class="btn btn-secondary" onclick="logout()" id="logoutBtn" style="display: none;" aria-label="Đăng xuất">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Home Screen -->
+        <div class="home-screen animate-fade-in" id="homeScreen">
+            <h1 class="home-title">AI Receptionist</h1>
+            <p class="home-subtitle">Chọn chế độ hoạt động phù hợp với nhu cầu của bạn</p>
+
+            <div class="mode-selection">
+                <div class="mode-card reception-mode animate-slide-in" onclick="showReception()" role="button" tabindex="0" aria-label="Chế độ Lễ tân">
+                    <i class="fas fa-camera animate-float"></i>
+                    <h3>Chế độ Lễ tân</h3>
+                    <p>Nhận diện khuôn mặt thông minh và hướng dẫn ứng viên đến đúng phòng phỏng vấn</p>
+                </div>
+
+                <div class="mode-card hr-mode animate-slide-in" onclick="showLogin()" role="button" tabindex="0" aria-label="Quản lý HR">
+                    <i class="fas fa-users-cog animate-float"></i>
+                    <h3>Quản lý HR</h3>
+                    <p>Đăng nhập để quản lý ứng viên, lịch phỏng vấn và theo dõi thống kê</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Screen -->
+        <div class="login-screen animate-fade-in" id="loginScreen">
+            <div class="login-card">
+                <h2 class="login-title">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Đăng nhập HR</span>
+                </h2>
+
+                <form id="loginForm" novalidate>
+                    <div class="form-group">
+                        <label for="username">Tên đăng nhập *</label>
+                        <input type="text" id="username" name="username" class="form-control" required
+                               placeholder="Nhập tên đăng nhập" autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Mật khẩu *</label>
+                        <input type="password" id="password" name="password" class="form-control" required
+                               placeholder="Nhập mật khẩu" autocomplete="current-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-success" style="width: 100%;">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Đăng nhập</span>
+                    </button>
+                </form>
+
+                <div class="login-error" id="loginError" role="alert" aria-live="polite"></div>
+
+                <div class="demo-info">
+                    <strong>Tài khoản demo:</strong><br>
+                    Tên đăng nhập: <code>admin</code><br>
+                    Mật khẩu: <code>admin123</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reception Screen -->
+        <div class="reception-screen animate-fade-in" id="receptionScreen">
+            <div class="reception-header">
+                <h2>Chế độ Lễ tân - Nhận diện thông minh</h2>
+                <div class="status-dot" title="Đang hoạt động"></div>
+            </div>
+
+            <div class="camera-section">
+                <div class="camera-container">
+                    <video id="video" autoplay playsinline muted aria-label="Camera nhận diện khuôn mặt"></video>
+                    <div class="camera-overlay"></div>
+                </div>
+                <canvas id="canvas" aria-hidden="true"></canvas>
+            </div>
+
+            <div class="result-section">
+                <div class="result-card">
+                    <div id="waiting-state" class="waiting-state">
+                        <i class="fas fa-search animate-float" aria-hidden="true"></i>
+                        <div>
+                            <strong>Đang quét khuôn mặt...</strong>
+                            <div style="font-size: 0.9em; margin-top: 0.5rem; color: var(--text-muted);">
+                                Vui lòng nhìn thẳng vào camera để được nhận diện
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="recognition-result" class="recognition-result">
+                        <div class="person-info">
+                            <div class="person-avatar">
+                                <span id="person-initial" aria-hidden="true">?</span>
+                            </div>
+                            <div class="person-details">
+                                <h3 id="person-name">Đang nhận diện...</h3>
+                                <div class="person-meta">
+                                    <span id="person-school">
+                                        <i class="fas fa-graduation-cap" aria-hidden="true"></i>
+                                        <span>-</span>
+                                    </span>
+                                    <span id="person-major">
+                                        <i class="fas fa-book" aria-hidden="true"></i>
+                                        <span>-</span>
+                                    </span>
+                                    <span id="person-age">
+                                        <i class="fas fa-calendar" aria-hidden="true"></i>
+                                        <span>-</span> tuổi
+                                    </span>
+                                </div>
+                                <div class="confidence-bar">
+                                    <div id="confidence-fill" class="confidence-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="direction-card" class="direction-card">
+                            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                            <span id="direction-text">Vui lòng đến phòng họp</span>
+                        </div>
+                    </div>
+
+                    <div id="error-state" class="error-state" role="alert" aria-live="polite">
+                        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                        <div><strong>Không thể nhận diện</strong></div>
+                        <div id="error-message">Vui lòng thử lại hoặc liên hệ lễ tân</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HR Dashboard -->
+        <div class="hr-dashboard animate-fade-in" id="hrDashboard">
+            <div class="dashboard-nav">
+                <div class="nav-item active" onclick="showDashboardTab('overview')" role="button" tabindex="0">
+                    <i class="fas fa-chart-line" aria-hidden="true"></i>
+                    <span>Tổng quan</span>
+                </div>
+                <div class="nav-item" onclick="showDashboardTab('candidates')" role="button" tabindex="0">
+                    <i class="fas fa-users" aria-hidden="true"></i>
+                    <span>Ứng viên</span>
+                </div>
+                <div class="nav-item" onclick="showDashboardTab('interviews')" role="button" tabindex="0">
+                    <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                    <span>Lịch phỏng vấn</span>
+                </div>
+            </div>
+
+            <div class="dashboard-content">
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="dashboard-tab">
+                    <h2 style="margin-bottom: 1.5rem; color: var(--text-primary); font-weight: 700;">
+                        <i class="fas fa-chart-line" aria-hidden="true"></i>
+                        Tổng quan hệ thống
+                    </h2>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalCandidates">0</div>
+                            <div class="stat-label">Tổng ứng viên</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="todayInterviews">0</div>
+                            <div class="stat-label">Phỏng vấn hôm nay</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="scheduledInterviews">0</div>
+                            <div class="stat-label">Lịch đã lên</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="completedInterviews">0</div>
+                            <div class="stat-label">Đã hoàn thành</div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                        <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600;">
+                            <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            Thông tin hệ thống
+                        </h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">
+                            • Hệ thống hoạt động 24/7 với độ chính xác nhận diện cao
+                        </p>
+                        <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">
+                            • Tự động cập nhật thông tin ứng viên và lịch phỏng vấn
+                        </p>
+                        <p style="color: var(--text-secondary);">
+                            • Gửi thông báo real-time cho HR và ứng viên
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Candidates Tab -->
+                <div id="candidates-tab" class="dashboard-tab" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                        <h2 style="color: var(--text-primary); font-weight: 700;">
+                            <i class="fas fa-users" aria-hidden="true"></i>
+                            Quản lý ứng viên
+                        </h2>
+                        <button class="btn btn-success" onclick="showAddCandidateModal()">
+                            <i class="fas fa-plus" aria-hidden="true"></i>
+                            <span>Thêm ứng viên</span>
+                        </button>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="candidatesTable">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Tên</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Vị trí</th>
+                                    <th scope="col">Trạng thái</th>
+                                    <th scope="col">Phòng</th>
+                                    <th scope="col">Thời gian</th>
+                                    <th scope="col">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Candidates data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Interviews Tab -->
+                <div id="interviews-tab" class="dashboard-tab" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                        <h2 style="color: var(--text-primary); font-weight: 700;">
+                            <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                            Lịch phỏng vấn
+                        </h2>
+                        <button class="btn btn-success" onclick="showScheduleModal()">
+                            <i class="fas fa-calendar-plus" aria-hidden="true"></i>
+                            <span>Lên lịch mới</span>
+                        </button>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="interviewsTable">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Ứng viên</th>
+                                    <th scope="col">Ngày giờ</th>
+                                    <th scope="col">Phòng</th>
+                                    <th scope="col">Loại</th>
+                                    <th scope="col">Trạng thái</th>
+                                    <th scope="col">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Interviews data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Candidate Modal -->
+    <div class="modal" id="addCandidateModal" role="dialog" aria-labelledby="addCandidateTitle" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="addCandidateTitle">
+                    <i class="fas fa-user-plus" aria-hidden="true"></i>
+                    Thêm ứng viên mới
+                </h3>
+                <button class="close-btn" onclick="closeModal('addCandidateModal')" aria-label="Đóng modal">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <form id="addCandidateForm" novalidate>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="candidateName">Họ tên *</label>
+                        <input type="text" id="candidateName" name="name" class="form-control" required
+                               placeholder="Nhập họ tên đầy đủ">
+                    </div>
+                    <div class="form-group">
+                        <label for="candidateAge">Tuổi</label>
+                        <input type="number" id="candidateAge" name="age" class="form-control"
+                               min="18" max="65" placeholder="Nhập tuổi">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="candidateEmail">Email</label>
+                        <input type="email" id="candidateEmail" name="email" class="form-control"
+                               placeholder="example@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="candidatePhone">Số điện thoại</label>
+                        <input type="tel" id="candidatePhone" name="phone" class="form-control"
+                               placeholder="0123456789">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="candidateSchool">Trường học</label>
+                        <input type="text" id="candidateSchool" name="school" class="form-control"
+                               placeholder="Tên trường đại học">
+                    </div>
+                    <div class="form-group">
+                        <label for="candidateMajor">Chuyên ngành</label>
+                        <input type="text" id="candidateMajor" name="major" class="form-control"
+                               placeholder="Chuyên ngành học">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="candidatePosition">Vị trí ứng tuyển</label>
+                    <input type="text" id="candidatePosition" name="position_applied" class="form-control"
+                           placeholder="Vị trí công việc ứng tuyển">
+                </div>
+
+                <div class="form-group">
+                    <label for="candidateNotes">Ghi chú</label>
+                    <textarea id="candidateNotes" name="notes" class="form-control" rows="3"
+                              placeholder="Ghi chú thêm về ứng viên..."></textarea>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addCandidateModal')">
+                        Hủy
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save" aria-hidden="true"></i>
+                        <span>Lưu ứng viên</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Schedule Interview Modal -->
+    <div class="modal" id="scheduleModal" role="dialog" aria-labelledby="scheduleTitle" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="scheduleTitle">
+                    <i class="fas fa-calendar-plus" aria-hidden="true"></i>
+                    Lên lịch phỏng vấn
+                </h3>
+                <button class="close-btn" onclick="closeModal('scheduleModal')" aria-label="Đóng modal">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <form id="scheduleForm" novalidate>
+                <div class="form-group">
+                    <label for="candidateSelect">Chọn ứng viên *</label>
+                    <select id="candidateSelect" name="person_id" class="form-control" required>
+                        <option value="">Chọn ứng viên</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="interviewDate">Ngày phỏng vấn *</label>
+                        <input type="date" id="interviewDate" name="interview_date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="interviewTime">Giờ phỏng vấn *</label>
+                        <input type="time" id="interviewTime" name="interview_time" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="interviewRoom">Phòng phỏng vấn *</label>
+                        <select id="interviewRoom" name="interview_room" class="form-control" required>
+                            <option value="">Chọn phòng</option>
+                            <option value="Phòng A1">Phòng A1</option>
+                            <option value="Phòng A2">Phòng A2</option>
+                            <option value="Phòng B1">Phòng B1</option>
+                            <option value="Phòng B2">Phòng B2</option>
+                            <option value="Phòng Hội thảo">Phòng Hội thảo</option>
+                            <option value="Phòng Executive">Phòng Executive</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="interviewDuration">Thời lượng</label>
+                        <select id="interviewDuration" name="duration_minutes" class="form-control">
+                            <option value="30">30 phút</option>
+                            <option value="45">45 phút</option>
+                            <option value="60" selected>60 phút</option>
+                            <option value="90">90 phút</option>
+                            <option value="120">120 phút</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="interviewType">Loại phỏng vấn</label>
+                    <select id="interviewType" name="interview_type" class="form-control">
+                        <option value="technical">Phỏng vấn kỹ thuật</option>
+                        <option value="hr">Phỏng vấn HR</option>
+                        <option value="final">Phỏng vấn cuối cùng</option>
+                        <option value="group">Phỏng vấn nhóm</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="interviewNotes">Ghi chú</label>
+                    <textarea id="interviewNotes" name="notes" class="form-control" rows="3"
+                              placeholder="Ghi chú về phỏng vấn, yêu cầu đặc biệt..."></textarea>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('scheduleModal')">
+                        Hủy
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-calendar-check" aria-hidden="true"></i>
+                        <span>Lên lịch</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; backdrop-filter: blur(4px);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
+            <div class="loading" style="width: 40px; height: 40px; margin: 0 auto 1rem;"></div>
+            <div>Đang xử lý...</div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let isProcessing = false;
+        let recognitionInterval;
+        let currentStream = null;
+
+        // Utility functions
+        function showLoading(show = true) {
+            document.getElementById('loadingOverlay').style.display = show ? 'block' : 'none';
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 2rem;
+                right: 2rem;
+                background: ${type === 'error' ? 'var(--danger)' : type === 'success' ? 'var(--secondary)' : 'var(--primary)'};
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: var(--radius-lg);
+                box-shadow: var(--shadow-xl);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+                max-width: 300px;
+                word-wrap: break-word;
+            `;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 5000);
+        }
+
+        // Navigation functions
+        function goHome() {
+            showScreen('homeScreen');
+            document.getElementById('logoutBtn').style.display = 'none';
+            stopCamera();
+            if (recognitionInterval) {
+                clearInterval(recognitionInterval);
+                recognitionInterval = null;
+            }
+        }
+
+        function showLogin() {
+            showScreen('loginScreen');
+            // Reset form
+            document.getElementById('loginForm').reset();
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        function showReception() {
+            showScreen('receptionScreen');
+            initCamera();
+        }
+
+        function showHRDashboard() {
+            showScreen('hrDashboard');
+            document.getElementById('logoutBtn').style.display = 'inline-flex';
+            loadDashboardData();
+        }
+
+        function logout() {
+            currentUser = null;
+            showNotification('Đã đăng xuất thành công', 'success');
+            goHome();
+        }
+
+        function showScreen(screenId) {
+            const screens = ['homeScreen', 'loginScreen', 'receptionScreen', 'hrDashboard'];
+            screens.forEach(screen => {
+                const element = document.getElementById(screen);
+                if (element) {
+                    element.style.display = 'none';
+                    element.classList.remove('animate-fade-in');
+                }
+            });
+
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.style.display = 'block';
+                targetScreen.classList.add('animate-fade-in');
+            }
+        }
+
+        // Login functionality
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            const username = formData.get('username').trim();
+            const password = formData.get('password');
+
+            if (!username || !password) {
+                showLoginError('Vui lòng nhập đầy đủ thông tin');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                // Simulate API call for demo
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                if (username === 'admin' && password === 'admin123') {
+                    currentUser = { username: 'admin', name: 'Administrator' };
+                    showNotification('Đăng nhập thành công!', 'success');
+                    showHRDashboard();
+                } else {
+                    showLoginError('Tên đăng nhập hoặc mật khẩu không chính xác');
+                }
+            } catch (error) {
+                showLoginError('Lỗi kết nối: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        function showLoginError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Reception functionality
+        async function initCamera() {
+            try {
+                showLoading(true);
+
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    }
+                });
+
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                currentStream = stream;
+
+                video.addEventListener('loadeddata', () => {
+                    showLoading(false);
+                    startRecognition();
+                    showNotification('Camera đã sẵn sàng', 'success');
+                });
+
+            } catch (err) {
+                showLoading(false);
+                showError('Không thể truy cập camera: ' + err.message);
+                showNotification('Lỗi camera: ' + err.message, 'error');
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+
+            const video = document.getElementById('video');
+            if (video.srcObject) {
+                video.srcObject = null;
+            }
+        }
+
+        function startRecognition() {
+            if (recognitionInterval) {
+                clearInterval(recognitionInterval);
+            }
+
+            // Add scanning effect
+            const cameraContainer = document.querySelector('.camera-container');
+            cameraContainer.classList.add('scanning');
+
+            recognitionInterval = setInterval(() => {
+                if (!isProcessing) {
+                    captureAndRecognize();
+                }
+            }, 3000); // Increased interval for better performance
+        }
+
+        async function captureAndRecognize() {
+            if (isProcessing) return;
+
+            isProcessing = true;
+
+            try {
+                const video = document.getElementById('video');
+                if (!video.videoWidth || !video.videoHeight) {
+                    isProcessing = false;
+                    return;
+                }
+
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0);
+
+                // Simulate recognition for demo
+                const mockData = await simulateRecognition();
+                handleRecognitionResult(mockData);
+
+            } catch (err) {
+                showError('Lỗi xử lý hình ảnh: ' + err.message);
+            } finally {
+                isProcessing = false;
+            }
+        }
+
+        // Mock recognition function for demo
+        async function simulateRecognition() {
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const mockCandidates = [
+                {
+                    name: "Nguyễn Văn An",
+                    confidence: 0.92,
+                    info: {
+                        age: 25,
+                        school: "Đại học Bách khoa Hà Nội",
+                        major: "Khoa học máy tính",
+                        meeting_room: "Phòng A1",
+                        meeting_time: "14:30 - 15:30"
+                    }
+                },
+                {
+                    name: "Trần Thị Lan",
+                    confidence: 0.88,
+                    info: {
+                        age: 23,
+                        school: "Đại học Kinh tế Quốc dân",
+                        major: "Quản trị kinh doanh",
+                        meeting_room: "Phòng B2",
+                        meeting_time: "15:00 - 16:00"
+                    }
+                }
+            ];
+
+            // 70% chance of recognition, 30% chance of unknown
+            if (Math.random() > 0.3) {
+                const randomCandidate = mockCandidates[Math.floor(Math.random() * mockCandidates.length)];
+                return {
+                    recognitions: [randomCandidate]
+                };
+            } else {
+                return {
+                    recognitions: [{
+                        name: "Unknown",
+                        confidence: 0
+                    }]
+                };
+            }
+        }
+
+        function handleRecognitionResult(data) {
+            if (data.recognitions && data.recognitions.length > 0) {
+                const person = data.recognitions[0];
+
+                if (person.name !== "Unknown" && person.name !== "Error" && person.confidence > 0.7) {
+                    showRecognitionSuccess(person);
+                } else {
+                    showWaitingState();
+                }
+            } else {
+                showWaitingState();
+            }
+        }
+
+        function showRecognitionSuccess(person) {
+            const info = person.info || {};
+
+            document.getElementById('waiting-state').style.display = 'none';
+            document.getElementById('error-state').style.display = 'none';
+            document.getElementById('recognition-result').style.display = 'block';
+
+            // Update person info
+            const initialElement = document.getElementById('person-initial');
+            const nameElement = document.getElementById('person-name');
+
+            initialElement.textContent = person.name.charAt(0).toUpperCase();
+            nameElement.textContent = person.name;
+
+            // Update meta info
+            const schoolSpan = document.querySelector('#person-school span');
+            const majorSpan = document.querySelector('#person-major span');
+            const ageSpan = document.querySelector('#person-age span');
+
+            schoolSpan.textContent = info.school || 'Chưa cập nhật';
+            majorSpan.textContent = info.major || 'Chưa cập nhật';
+            ageSpan.textContent = info.age || '?';
+
+            // Update confidence bar
+            const confidence = Math.round(person.confidence * 100);
+            const confidenceFill = document.getElementById('confidence-fill');
+            confidenceFill.style.width = confidence + '%';
+
+            // Update direction
+            const directionText = document.getElementById('direction-text');
+            if (info.meeting_room) {
+                directionText.innerHTML = `<strong>Vui lòng đến ${info.meeting_room}</strong>`;
+                if (info.meeting_time) {
+                    directionText.innerHTML += `<div style="font-size: 0.9em; margin-top: 0.5rem; opacity: 0.9;">Thời gian: ${info.meeting_time}</div>`;
+                }
+            } else {
+                directionText.innerHTML = '<strong>Chào mừng bạn đến với văn phòng!</strong>';
+            }
+
+            // Show success notification
+            showNotification(`Chào mừng ${person.name}!`, 'success');
+
+            // Auto hide after 8 seconds
+            setTimeout(() => {
+                showWaitingState();
+            }, 8000);
+        }
+
+        function showWaitingState() {
+            document.getElementById('waiting-state').style.display = 'flex';
+            document.getElementById('recognition-result').style.display = 'none';
+            document.getElementById('error-state').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('waiting-state').style.display = 'none';
+            document.getElementById('recognition-result').style.display = 'none';
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-state').style.display = 'flex';
+
+            setTimeout(() => {
+                showWaitingState();
+            }, 5000);
+        }
+
+        // HR Dashboard functionality
+        function showDashboardTab(tabName) {
+            // Update nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+
+            // Show/hide tabs
+            document.querySelectorAll('.dashboard-tab').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            document.getElementById(tabName + '-tab').style.display = 'block';
+
+            // Load data based on tab
+            switch(tabName) {
+                case 'overview':
+                    loadOverviewData();
+                    break;
+                case 'candidates':
+                    loadCandidatesData();
+                    break;
+                case 'interviews':
+                    loadInterviewsData();
+                    break;
+            }
+        }
+
+        async function loadDashboardData() {
+            showLoading(true);
+            try {
+                await Promise.all([
+                    loadOverviewData(),
+                    loadCandidatesData(),
+                    loadInterviewsData()
+                ]);
+            } catch (error) {
+                showNotification('Lỗi tải dữ liệu: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function loadOverviewData() {
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                const stats = {
+                    total_candidates: 48,
+                    today_interviews: 7,
+                    interviews: {
+                        scheduled: 12,
+                        completed: 35
+                    }
+                };
+
+                // Animate numbers
+                animateNumber('totalCandidates', stats.total_candidates);
+                animateNumber('todayInterviews', stats.today_interviews);
+                animateNumber('scheduledInterviews', stats.interviews.scheduled);
+                animateNumber('completedInterviews', stats.interviews.completed);
+
+            } catch (error) {
+                console.error('Error loading overview data:', error);
+                showNotification('Lỗi tải dữ liệu tổng quan', 'error');
+            }
+        }
+
+        function animateNumber(elementId, targetNumber) {
+            const element = document.getElementById(elementId);
+            const startNumber = 0;
+            const duration = 1000;
+            const startTime = performance.now();
+
+            function updateNumber(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                const currentNumber = Math.floor(startNumber + (targetNumber - startNumber) * progress);
+                element.textContent = currentNumber;
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                }
+            }
+
+            requestAnimationFrame(updateNumber);
+        }
+
+        async function loadCandidatesData() {
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 400));
+
+                const candidates = [
+                    {
+                        id: 1,
+                        name: "Nguyễn Văn An",
+                        email: "an.nguyen@email.com",
+                        position_applied: "Frontend Developer",
+                        interview_status: "scheduled",
+                        meeting_room: "Phòng A1",
+                        meeting_time: "14:30 hôm nay"
+                    },
+                    {
+                        id: 2,
+                        name: "Trần Thị Lan",
+                        email: "lan.tran@email.com",
+                        position_applied: "Business Analyst",
+                        interview_status: "scheduled",
+                        meeting_room: "Phòng B2",
+                        meeting_time: "15:00 hôm nay"
+                    },
+                    {
+                        id: 3,
+                        name: "Lê Minh Hoàng",
+                        email: "hoang.le@email.com",
+                        position_applied: "Backend Developer",
+                        interview_status: "completed",
+                        meeting_room: "Phòng A2",
+                        meeting_time: "10:00 hôm nay"
+                    }
+                ];
+
+                const tbody = document.querySelector('#candidatesTable tbody');
+                tbody.innerHTML = '';
+
+                candidates.forEach(candidate => {
+                    const row = document.createElement('tr');
+                    row.style.animation = 'fadeIn 0.5s ease';
+                    row.innerHTML = `
+                        <td><strong>${candidate.name}</strong></td>
+                        <td>${candidate.email || '-'}</td>
+                        <td>${candidate.position_applied || '-'}</td>
+                        <td><span class="status-badge status-${candidate.interview_status}">${getStatusText(candidate.interview_status)}</span></td>
+                        <td>${candidate.meeting_room || '-'}</td>
+                        <td>${candidate.meeting_time || '-'}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="editCandidate(${candidate.id})" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                                <i class="fas fa-edit" aria-hidden="true"></i>
+                                <span>Sửa</span>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading candidates data:', error);
+                showNotification('Lỗi tải danh sách ứng viên', 'error');
+            }
+        }
+
+        async function loadInterviewsData() {
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 350));
+
+                const interviews = [
+                    {
+                        id: 1,
+                        person_name: "Nguyễn Văn An",
+                        interview_date: new Date().toISOString(),
+                        interview_room: "Phòng A1",
+                        interview_type: "technical",
+                        status: "scheduled"
+                    },
+                    {
+                        id: 2,
+                        person_name: "Trần Thị Lan",
+                        interview_date: new Date().toISOString(),
+                        interview_room: "Phòng B2",
+                        interview_type: "hr",
+                        status: "scheduled"
+                    },
+                    {
+                        id: 3,
+                        person_name: "Lê Minh Hoàng",
+                        interview_date: new Date(Date.now() - 86400000).toISOString(),
+                        interview_room: "Phòng A2",
+                        interview_type: "final",
+                        status: "completed"
+                    }
+                ];
+
+                const tbody = document.querySelector('#interviewsTable tbody');
+                tbody.innerHTML = '';
+
+                interviews.forEach(interview => {
+                    const row = document.createElement('tr');
+                    row.style.animation = 'fadeIn 0.5s ease';
+                    const date = new Date(interview.interview_date);
+                    const formattedDate = date.toLocaleString('vi-VN');
+
+                    row.innerHTML = `
+                        <td><strong>${interview.person_name}</strong></td>
+                        <td>${formattedDate}</td>
+                        <td>${interview.interview_room}</td>
+                        <td>${getInterviewTypeText(interview.interview_type)}</td>
+                        <td><span class="status-badge status-${interview.status}">${getStatusText(interview.status)}</span></td>
+                        <td>
+                            ${interview.status === 'scheduled' ?
+                                `<button class="btn btn-success" onclick="updateInterviewStatus(${interview.id}, 'completed')" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                                    <i class="fas fa-check" aria-hidden="true"></i>
+                                    <span>Hoàn thành</span>
+                                </button>` :
+                                `<span style="color: var(--text-muted); font-size: 0.8rem;">Đã xong</span>`
+                            }
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading interviews data:', error);
+                showNotification('Lỗi tải lịch phỏng vấn', 'error');
+            }
+        }
+
+        // Modal functions
+        function showAddCandidateModal() {
+            const modal = document.getElementById('addCandidateModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+
+            // Focus first input
+            setTimeout(() => {
+                document.getElementById('candidateName').focus();
+            }, 100);
+        }
+
+        function showScheduleModal() {
+            loadCandidatesForSchedule();
+            const modal = document.getElementById('scheduleModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            document.body.style.overflow = 'auto';
+
+            // Reset forms
+            const form = document.querySelector(`#${modalId} form`);
+            if (form) {
+                form.reset();
+            }
+        }
+
+        async function loadCandidatesForSchedule() {
+            try {
+                // Simulate API call
+                const candidates = [
+                    { id: 1, name: "Nguyễn Văn An", position_applied: "Frontend Developer" },
+                    { id: 2, name: "Trần Thị Lan", position_applied: "Business Analyst" },
+                    { id: 4, name: "Phạm Thị Mai", position_applied: "UI/UX Designer" },
+                    { id: 5, name: "Hoàng Văn Nam", position_applied: "DevOps Engineer" }
+                ];
+
+                const select = document.getElementById('candidateSelect');
+                select.innerHTML = '<option value="">Chọn ứng viên</option>';
+
+                candidates.forEach(candidate => {
+                    const option = document.createElement('option');
+                    option.value = candidate.id;
+                    option.textContent = `${candidate.name} - ${candidate.position_applied || 'Chưa có vị trí'}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading candidates for schedule:', error);
+                showNotification('Lỗi tải danh sách ứng viên', 'error');
+            }
+        }
+
+        // Form submissions
+        document.getElementById('addCandidateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const candidateData = Object.fromEntries(formData);
+
+            // Validate required fields
+            if (!candidateData.name.trim()) {
+                showNotification('Vui lòng nhập họ tên', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                showNotification('Thêm ứng viên thành công!', 'success');
+                closeModal('addCandidateModal');
+                loadCandidatesData();
+
+            } catch (error) {
+                showNotification('Lỗi khi thêm ứng viên: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        document.getElementById('scheduleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const scheduleData = Object.fromEntries(formData);
+
+            // Validate required fields
+            if (!scheduleData.person_id || !scheduleData.interview_date || !scheduleData.interview_time || !scheduleData.interview_room) {
+                showNotification('Vui lòng điền đầy đủ thông tin bắt buộc', 'error');
+                return;
+            }
+
+            // Combine date and time
+            const datetime = scheduleData.interview_date + 'T' + scheduleData.interview_time;
+            scheduleData.interview_date = datetime;
+            delete scheduleData.interview_time;
+
+            showLoading(true);
+
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                showNotification('Lên lịch phỏng vấn thành công!', 'success');
+                closeModal('scheduleModal');
+                loadInterviewsData();
+                loadOverviewData();
+
+            } catch (error) {
+                showNotification('Lỗi khi lên lịch: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // Helper functions
+        function getStatusText(status) {
+            const statusMap = {
+                'scheduled': 'Đã lên lịch',
+                'completed': 'Hoàn thành',
+                'cancelled': 'Đã hủy',
+                'in-progress': 'Đang diễn ra'
+            };
+            return statusMap[status] || status;
+        }
+
+        function getInterviewTypeText(type) {
+            const typeMap = {
+                'technical': 'Kỹ thuật',
+                'hr': 'HR',
+                'final': 'Cuối cùng',
+                'group': 'Nhóm'
+            };
+            return typeMap[type] || type;
+        }
+
+        async function updateInterviewStatus(interviewId, status) {
+            showLoading(true);
+
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                showNotification('Cập nhật trạng thái thành công!', 'success');
+                loadInterviewsData();
+                loadOverviewData();
+
+            } catch (error) {
+                showNotification('Lỗi khi cập nhật: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function editCandidate(candidateId) {
+            showNotification('Tính năng sửa ứng viên đang phát triển', 'info');
+        }
+
+        // Keyboard event handlers
+        document.addEventListener('keydown', (e) => {
+            // Close modal on Escape
+            if (e.key === 'Escape') {
+                const modals = document.querySelectorAll('.modal[style*="block"]');
+                modals.forEach(modal => {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                });
+            }
+
+            // Navigate home on Ctrl+H
+            if (e.ctrlKey && e.key === 'h') {
+                e.preventDefault();
+                goHome();
+            }
+        });
+
+        // Make cards keyboard accessible
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const target = e.target;
+                if (target.classList.contains('mode-card')) {
+                    e.preventDefault();
+                    target.click();
+                } else if (target.classList.contains('nav-item')) {
+                    e.preventDefault();
+                    target.click();
+                }
+            }
+        });
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            showScreen('homeScreen');
+
+            // Set minimum date for interview scheduling to today
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('interviewDate');
+            if (dateInput) {
+                dateInput.setAttribute('min', today);
+            }
+
+            // Add focus management for accessibility
+            document.querySelectorAll('.btn, .nav-item, .mode-card').forEach(el => {
+                el.setAttribute('tabindex', '0');
+            });
+
+            // Initialize tooltips or any other UI enhancements
+            console.log('AI Receptionist System initialized successfully');
+        });
+
+        // Cleanup when page unloads
+        window.addEventListener('beforeunload', () => {
+            if (recognitionInterval) {
+                clearInterval(recognitionInterval);
+            }
+            stopCamera();
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Performance optimization: debounce resize events
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                // Handle responsive adjustments if needed
+            }, 250);
+        });
+
+        // Add CSS animation classes programmatically
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translateY(0); }
+                to { opacity: 0; transform: translateY(-20px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

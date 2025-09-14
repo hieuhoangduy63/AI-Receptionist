@@ -1,0 +1,5 @@
+name,email,phone,age,major,school,position_applied,interview_status,meeting_room,meeting_time,notes
+Tony_Blair,tony.blair@email.com,0901234567,55,Political Science,Oxford University,Senior Consultant,scheduled,Room A,2025-09-15 09:00,Former PM experience
+Vladimir_Putin,vladimir.putin@kremlin.ru,0987654321,70,Law,Saint Petersburg State University,Security Advisor,in-progress,Room B,2025-09-15 10:30,Government background
+Bill_Clinton,bill.clinton@email.com,0912345678,77,International Relations,Georgetown University,Strategic Advisor,completed,Room C,2025-09-14 14:00,Former President
+Ana_Palacio,ana.palacio@email.com,0923456789,35,Computer Science,MIT,Software Engineer,scheduled,Room D,2025-09-16 09:00,Strong technical skills

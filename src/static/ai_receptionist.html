@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Receptionist - Smart Check-in System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            padding: 40px;
+            max-width: 1200px;
+            width: 95%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: rgba(240, 240, 240, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            grid-column: 1 / -1;
+        }
+
+        .logo {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        /* Chatbot Styles */
+        .chatbot-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+            padding-bottom: 15px;
+        }
+
+        .chatbot-header h3 {
+            color: #667eea;
+            margin: 0 0 5px 0;
+            font-size: 1.4em;
+        }
+
+        .chatbot-header p {
+            color: #666;
+            margin: 0;
+            font-size: 0.9em;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
+            max-height: 500px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            max-height: 350px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .message-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 12px;
+            max-width: 85%;
+        }
+
+        .bot-message .message-content {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            margin-right: auto;
+        }
+
+        .user-message .message-content {
+            background: #f0f0f0;
+            color: #333;
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+
+        .message-content i {
+            font-size: 1.1em;
+            margin-top: 2px;
+        }
+
+        .message-content span {
+            flex: 1;
+            line-height: 1.4;
+        }
+
+        .chat-input-container {
+            margin-top: auto;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        #chat-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #chat-input:disabled {
+            background: #f5f5f5;
+            color: #999;
+        }
+
+        #send-btn, #mic-btn {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        #send-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        #send-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .mic-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .mic-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .mic-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .mic-btn.recording {
+            background: #dc3545;
+            animation: pulse 1.5s infinite;
+        }
+
+        .voice-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid #dc3545;
+            border-radius: 20px;
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .voice-status i {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { 
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+            }
+            50% { 
+                opacity: 0.5;
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+            }
+            100% { 
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .header {
+                grid-column: 1;
+            }
+            
+            .chat-container {
+                min-height: 300px;
+                max-height: 400px;
+            }
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .camera-section {
+            position: relative;
+            margin: 30px 0;
+        }
+
+        .camera-container {
+            position: relative;
+            display: inline-block;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            background: #000;
+        }
+
+        video {
+            width: 100%;
+            max-width: 480px;
+            height: auto;
+            display: block;
+            border-radius: 20px;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 49%, rgba(102, 126, 234, 0.1) 50%, transparent 51%);
+            pointer-events: none;
+            opacity: 0;
+            animation: scanLine 3s ease-in-out infinite;
+        }
+
+        @keyframes scanLine {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        .result-section {
+            margin-top: 30px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            padding: 25px;
+            width: 100%;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+            animation: loading 2s linear infinite;
+        }
+
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .waiting-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            color: #64748b;
+        }
+
+        .waiting-state i {
+            font-size: 2.5em;
+            color: #667eea;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .recognition-result {
+            display: none;
+        }
+
+        .recognition-result.active {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .person-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            text-align: left;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .person-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .person-details h3 {
+            color: #1e293b;
+            font-size: 1.4em;
+            margin-bottom: 5px;
+        }
+
+        .person-meta {
+            color: #64748b;
+            font-size: 0.9em;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .direction-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            justify-content: center;
+            font-size: 1.1em;
+            font-weight: 600;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .direction-card i {
+            font-size: 1.3em;
+        }
+
+        .error-state {
+            color: #ef4444;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error-state i {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        .footer {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+            color: #64748b;
+        }
+
+        .tech-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badges {
+            display: flex;
+            gap: 10px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .badge.online {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .badge.processing {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 20px;
+            }
+
+            .logo {
+                font-size: 2em;
+            }
+
+            .person-info {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        /* Dark theme support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            }
+
+            .container {
+                background: rgba(30, 41, 59, 0.95);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .result-card {
+                background: linear-gradient(135deg, #334155 0%, #475569 100%);
+            }
+
+            .person-info {
+                background: rgba(51, 65, 85, 0.8);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-robot"></i> AI Receptionist
+            </div>
+            <div class="subtitle">Hệ thống check-in thông minh</div>
+        </div>
+
+        <div class="camera-section">
+            <div class="camera-container">
+                <video id="video" autoplay playsinline muted></video>
+                <div class="camera-overlay"></div>
+                <div class="status-indicator"></div>
+            </div>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="result-section">
+            <div class="result-card">
+                <div id="waiting-state" class="waiting-state">
+                    <i class="fas fa-search"></i>
+                    <div>
+                        <strong>Đang quét khuôn mặt...</strong>
+                        <div style="font-size: 0.9em; margin-top: 5px;">Vui lòng nhìn thẳng vào camera</div>
+                    </div>
+                </div>
+
+                <div id="recognition-result" class="recognition-result">
+                    <div class="person-info">
+                        <div class="person-avatar">
+                            <span id="person-initial">?</span>
+                        </div>
+                        <div class="person-details">
+                            <h3 id="person-name">Đang nhận diện...</h3>
+                            <div class="person-meta">
+                                <span id="person-school"><i class="fas fa-graduation-cap"></i> <span>-</span></span>
+                                <span id="person-major"><i class="fas fa-book"></i> <span>-</span></span>
+                                <span id="person-age"><i class="fas fa-calendar"></i> <span>-</span> tuổi</span>
+                            </div>
+                            <div class="confidence-bar">
+                                <div id="confidence-fill" class="confidence-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="direction-card" class="direction-card">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="direction-text">Vui lòng đến phòng họp</span>
+                    </div>
+                </div>
+
+                <div id="error-state" class="error-state" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div><strong>Không thể nhận diện</strong></div>
+                    <div id="error-message">Vui lòng thử lại hoặc liên hệ lễ tân</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="chatbot-header">
+                <h3><i class="fas fa-robot"></i> AI Assistant</h3>
+                <p>Tôi có thể giúp gì cho bạn?</p>
+            </div>
+
+            <div class="chat-container" id="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message bot-message">
+                        <div class="message-content">
+                            <i class="fas fa-robot"></i>
+                            <span>Xin chào! Tôi là trợ lý AI. Tôi có thể giúp bạn với các thông tin về lịch phỏng vấn và hướng dẫn trong văn phòng.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="input-group">
+                    <input type="text" id="chat-input" placeholder="Chat với Donkey... (luôn khả dụng)">
+                    <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+                    <button id="mic-btn" class="mic-btn"><i class="fas fa-microphone"></i></button>
+                </div>
+                <div class="voice-status" id="voice-status" style="display: none;">
+                    <i class="fas fa-microphone-alt"></i>
+                    <span>Đang nghe...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div class="footer">
+            <div class="tech-info">
+                <i class="fas fa-microchip"></i>
+                <span>Powered by AI Face Recognition</span>
+            </div>
+            <div class="status-badges">
+                <div class="badge online">
+                    <i class="fas fa-circle"></i> Online
+                </div>
+                <div class="badge processing" id="status-badge">
+                    <i class="fas fa-sync fa-spin"></i> Đang xử lý
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const waitingState = document.getElementById('waiting-state');
+        const recognitionResult = document.getElementById('recognition-result');
+        const errorState = document.getElementById('error-state');
+        const statusBadge = document.getElementById('status-badge');
+        
+        // Chatbot elements
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const micBtn = document.getElementById('mic-btn');
+        const voiceStatus = document.getElementById('voice-status');
+
+        let isProcessing = false;
+        let recognitionInterval;
+        let currentPersonName = null;
+        let isListening = false;
+        let recognition = null;
+        
+        // Initialize speech recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'vi-VN';
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                chatInput.value = transcript;
+                stopListening();
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                stopListening();
+            };
+            
+            recognition.onend = function() {
+                stopListening();
+            };
+        }
+
+        // Khởi tạo webcam
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    }
+                });
+                video.srcObject = stream;
+
+                // Bắt đầu nhận diện sau khi video loaded
+                video.addEventListener('loadeddata', () => {
+                    startRecognition();
+                });
+
+            } catch (err) {
+                showError('Không thể truy cập camera: ' + err.message);
+            }
+        }
+
+        function startRecognition() {
+            // Nhận diện mỗi 2 giây
+            recognitionInterval = setInterval(() => {
+                if (!isProcessing) {
+                    captureAndRecognize();
+                }
+            }, 2000);
+        }
+
+        async function captureAndRecognize() {
+            if (isProcessing) return;
+
+            isProcessing = true;
+            updateStatusBadge('processing');
+
+            try {
+                const ctx = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0);
+
+                canvas.toBlob(async (blob) => {
+                    const formData = new FormData();
+                    formData.append("file", blob, "frame.jpg");
+
+                    try {
+                        const response = await fetch("/recognize", {
+                            method: "POST",
+                            body: formData
+                        });
+
+                        const data = await response.json();
+                        handleRecognitionResult(data);
+
+                    } catch (err) {
+                        showError('Lỗi kết nối API: ' + err.message);
+                    } finally {
+                        isProcessing = false;
+                        updateStatusBadge('online');
+                    }
+                }, "image/jpeg", 0.8);
+
+            } catch (err) {
+                showError('Lỗi xử lý hình ảnh: ' + err.message);
+                isProcessing = false;
+                updateStatusBadge('error');
+            }
+        }
+
+        function handleRecognitionResult(data) {
+            if (data.recognitions && data.recognitions.length > 0) {
+                const person = data.recognitions[0];
+
+                if (person.name !== "Unknown" && person.name !== "Error") {
+                    showRecognitionSuccess(person);
+                } else {
+                    showWaitingState();
+                }
+            } else {
+                showWaitingState();
+            }
+        }
+
+        async function showRecognitionSuccess(person) {
+            const info = person.info || {};
+            currentPersonName = person.name;
+
+            // Ẩn waiting state và error
+            waitingState.style.display = 'none';
+            errorState.style.display = 'none';
+
+            // Hiển thị kết quả nhận diện
+            recognitionResult.classList.add('active');
+            recognitionResult.style.display = 'block';
+
+            // Cập nhật thông tin người dùng
+            document.getElementById('person-initial').textContent = person.name.charAt(0).toUpperCase();
+            document.getElementById('person-name').textContent = person.name;
+
+            // Cập nhật thông tin chi tiết
+            const schoolSpan = document.querySelector('#person-school span');
+            const majorSpan = document.querySelector('#person-major span');
+            const ageSpan = document.querySelector('#person-age span');
+
+            schoolSpan.textContent = info.school || 'Chưa cập nhật';
+            majorSpan.textContent = info.major || 'Chưa cập nhật';
+            ageSpan.textContent = info.age || '?';
+
+            // Cập nhật thanh độ tin cậy
+            const confidence = Math.round(person.confidence * 100);
+            document.getElementById('confidence-fill').style.width = confidence + '%';
+
+            // Cập nhật hướng dẫn phòng họp
+            const directionText = document.getElementById('direction-text');
+            if (info.meeting_room) {
+                directionText.innerHTML = `<strong>Vui lòng đến ${info.meeting_room}</strong>`;
+                if (info.meeting_time) {
+                    directionText.innerHTML += `<div style="font-size: 0.9em; margin-top: 5px;">Thời gian: ${info.meeting_time}</div>`;
+                }
+            } else {
+                directionText.innerHTML = '<strong>Chào mừng bạn đến với văn phòng!</strong>';
+            }
+
+            // Enable chatbot when person is recognized
+            enableChatbot();
+            
+            // Get interview info and make chatbot speak
+            try {
+                const response = await fetch(`/get_interview_info/${encodeURIComponent(person.name)}`);
+                const data = await response.json();
+                
+                if (data.success && data.greeting_message) {
+                    // Add greeting message to chat
+                    addMessageToChat('bot', data.greeting_message);
+                    
+                    // Make chatbot speak the greeting
+                    await fetch('/chatbot/speak', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: data.greeting_message
+                        })
+                    });
+                }
+            } catch (error) {
+                console.error('Error getting interview info:', error);
+            }
+
+            // Tự động ẩn sau 8 giây
+            setTimeout(() => {
+                showWaitingState();
+            }, 8000);
+        }
+
+        function showWaitingState() {
+            waitingState.style.display = 'flex';
+            recognitionResult.style.display = 'none';
+            recognitionResult.classList.remove('active');
+            errorState.style.display = 'none';
+            
+            // Disable chatbot when no one is recognized
+            disableChatbot();
+            currentPersonName = null;
+        }
+
+        function showError(message) {
+            waitingState.style.display = 'none';
+            recognitionResult.style.display = 'none';
+            recognitionResult.classList.remove('active');
+
+            document.getElementById('error-message').textContent = message;
+            errorState.style.display = 'flex';
+
+            // Tự động ẩn lỗi sau 5 giây
+            setTimeout(() => {
+                showWaitingState();
+            }, 5000);
+        }
+
+        function updateStatusBadge(status) {
+            const badge = document.getElementById('status-badge');
+
+            switch(status) {
+                case 'processing':
+                    badge.innerHTML = '<i class="fas fa-sync fa-spin"></i> Đang xử lý';
+                    badge.className = 'badge processing';
+                    break;
+                case 'online':
+                    badge.innerHTML = '<i class="fas fa-circle"></i> Sẵn sàng';
+                    badge.className = 'badge online';
+                    break;
+                case 'error':
+                    badge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Lỗi';
+                    badge.className = 'badge error';
+                    break;
+            }
+        }
+
+        // Chatbot Functions (Chat luôn khả dụng)
+        function enableChatbot() {
+            chatInput.disabled = false;
+            sendBtn.disabled = false;
+            micBtn.disabled = false;
+            chatInput.placeholder = 'Chat với Donkey... (luôn khả dụng)';
+        }
+        
+        function disableChatbot() {
+            // Chat luôn được bật, không disable nữa
+            chatInput.disabled = false;
+            sendBtn.disabled = false;
+            micBtn.disabled = false;
+            chatInput.placeholder = 'Chat với Donkey... (luôn khả dụng)';
+        }
+        
+        function addMessageToChat(sender, message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            const icon = document.createElement('i');
+            icon.className = sender === 'bot' ? 'fas fa-robot' : 'fas fa-user';
+            
+            const span = document.createElement('span');
+            span.textContent = message;
+            
+            contentDiv.appendChild(icon);
+            contentDiv.appendChild(span);
+            messageDiv.appendChild(contentDiv);
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessageToChat('user', message);
+            chatInput.value = '';
+            
+            try {
+                const response = await fetch('/chatbot/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        person_name: currentPersonName || "Anonymous"  // Always allow chat
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Add bot response to chat
+                    addMessageToChat('bot', data.response);
+                    
+                    // Make chatbot speak the response
+                    await fetch('/chatbot/speak', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: data.response
+                        })
+                    });
+                } else {
+                    addMessageToChat('bot', 'Xin lỗi, tôi không thể trả lời câu hỏi này.');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                addMessageToChat('bot', 'Có lỗi xảy ra khi gửi tin nhắn.');
+            }
+        }
+        
+        function startListening() {
+            if (!recognition || isListening) return;
+            
+            isListening = true;
+            micBtn.classList.add('recording');
+            voiceStatus.style.display = 'flex';
+            
+            try {
+                recognition.start();
+            } catch (error) {
+                console.error('Error starting speech recognition:', error);
+                stopListening();
+            }
+        }
+        
+        function stopListening() {
+            if (!isListening) return;
+            
+            isListening = false;
+            micBtn.classList.remove('recording');
+            voiceStatus.style.display = 'none';
+            
+            if (recognition) {
+                try {
+                    recognition.stop();
+                } catch (error) {
+                    console.error('Error stopping speech recognition:', error);
+                }
+            }
+        }
+        
+        // Event Listeners
+        sendBtn.addEventListener('click', sendMessage);
+        
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        micBtn.addEventListener('click', () => {
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
+            }
+        });
+
+        // Khởi tạo ứng dụng
+        document.addEventListener('DOMContentLoaded', () => {
+            initCamera();
+            enableChatbot(); // Chat luôn khả dụng ngay từ đầu
+        });
+
+        // Cleanup khi đóng trang
+        window.addEventListener('beforeunload', () => {
+            if (recognitionInterval) {
+                clearInterval(recognitionInterval);
+            }
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+            if (recognition) {
+                recognition.stop();
+            }
+        });
+    </script>
+</body>
+</html>
