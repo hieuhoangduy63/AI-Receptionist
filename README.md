@@ -54,14 +54,14 @@ TRAE_AI_Receptionist/
 ### Bước 1: Clone dự án
 
 ```bash
-git clone https://github.com/YourUsername/TRAE_AI_Receptionist.git
-cd TRAE_AI_Receptionist
+git clone https://github.com/hieuhoangduy63/AI-Receptionist.git
+cd AI-Receptionist
 ```
 
 ### Bước 2: Tạo Virtual Environment
 
 ```bash
-# Tạo virtual environment
+# Tạo virtual environment (trong project này tôi dùng python 3.10)
 python -m venv venv310
 
 # Kích hoạt virtual environment
@@ -95,7 +95,7 @@ MODEL_PATH=models/arcface.onnx
 Các model cần thiết:
 
 - `arcface.onnx`: Model nhận diện khuôn mặt
-- `vi_VN-vais1000-medium.onnx`: Model TTS tiếng Việt
+
 - `yolov8x-face-lindevs.pt`: Model phát hiện khuôn mặt
 
 ## Cách chạy dự án
@@ -131,7 +131,7 @@ Mở trình duyệt và truy cập:
 
 #### Nhận diện khuôn mặt:
 
-1. Sử dụng webcam hoặc upload ảnh
+1. Sử dụng webcam
 2. Hệ thống sẽ nhận diện và trả về thông tin người
 
 #### Chatbot AI:
