@@ -82,7 +82,7 @@ Tạo file `.env` trong thư mục gốc:
 
 ```env
 # Google AI API Key (để sử dụng chatbot)
-GOOGLE_API_KEY=your_google_api_key_here
+GEMINI_API_KEY=your_google_api_key_here
 
 # Các cấu hình khác (tùy chọn)
 DATABASE_PATH=src/face_recognition.db
