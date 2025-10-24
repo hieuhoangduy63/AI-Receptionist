@@ -36,9 +36,8 @@ TRAE_AI_Receptionist/
 │   ├── face_recognition.db    # Database SQLite
 │   ├── data/                  # Dữ liệu training khuôn mặt
 │   └── static/                # File web tĩnh
-├── venv310/                   # Virtual environment
 ├── requirements.txt           # Dependencies
-└── README.md                  # Hướng dẫn này
+└── README.md                  
 ```
 
 ## Yêu cầu hệ thống
